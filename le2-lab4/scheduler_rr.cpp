@@ -85,7 +85,7 @@ void data_output(std::list<std::shared_ptr<Task>> &task_list, uint16_t num_tasks
     task_list.sort(compare_id);
     uint16_t tot_tat = 0;
     uint16_t tot_wt = 0;
-    std::cout << "\n\nData: \n";
+    std::cout << "\n\nResult: \n";
 
     for (const auto &task : task_list)
     {
@@ -143,6 +143,18 @@ void setup_lists(uint16_t &curr_time, std::shared_ptr<Task> &running_task, std::
     }
 }
 
+/**
+ * @brief Handles scheduling of tasks
+ * 
+ * @param &curr_time 
+ * @param &running_task 
+ * @param &incoming_tasks 
+ * @param &ready_queue 
+ * @param &completed_tasks 
+ * @param &quantum 
+ * @param &remaining_quantum 
+ * @return bool 
+ */
 bool scheduler(uint16_t &curr_time, std::shared_ptr<Task> &running_task, std::list<std::shared_ptr<Task>> &incoming_tasks,
                std::list<std::shared_ptr<Task>> &ready_queue, std::list<std::shared_ptr<Task>> &completed_tasks, const uint16_t &quantum, uint16_t &remaining_quantum)
 {
@@ -177,34 +189,18 @@ bool scheduler(uint16_t &curr_time, std::shared_ptr<Task> &running_task, std::li
         {
             task->inc_wt();
         }
-/*
-        // Check if the running task has finished
-        if (running_task->get_rem_bt() == 0)
-        {
-            completed_tasks.push_back(running_task);
-            running_task = nullptr;
-            remaining_quantum = quantum; // Reset remaining quantum for next process
-        }
-        else if (remaining_quantum == 0) // Check if the running task has reached the end of its allocated time slot
-        {
-            incoming_tasks.push_front(running_task);
-            running_task = nullptr;
-            remaining_quantum = quantum; // Reset remaining quantum for next process
-        }*/
     }
     else // No running task, nothing in the ready queue - idling processor
     {
-        // std::cout << "No running task, nothing in the ready queue - idling processor\n";
         if (incoming_tasks.empty()) // If we're idling and the list of incoming tasks is empty - we're done.
         {
-            curr_time++;
+            ++curr_time;
             return true; // Signal that we're done
         }
     }
 
     // Update tick-counter
     ++curr_time;
-    // std::cout << "In scheduler, curr_time: " << curr_time << "\n";
 
     return false; // Signal that we're not done
 }
@@ -231,10 +227,9 @@ int main(void)
     data_input(incoming_tasks, num_tasks, quantum);
     uint16_t remaining_quantum = quantum;
 
-    while (!scheduler(current_time, running_task, incoming_tasks, ready_queue, completed_tasks, quantum, remaining_quantum))
-    {
-    }
-    // std::cout << "Current time: " << current_time << "\n";
+    // Run scheduler until done
+    while (!scheduler(current_time, running_task, incoming_tasks, ready_queue, completed_tasks, quantum, remaining_quantum)) {}
+
     //  Output data
     data_output(completed_tasks, num_tasks);
 
